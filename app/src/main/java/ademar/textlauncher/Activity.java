@@ -55,16 +55,12 @@ public final class Activity extends android.app.Activity implements
         update();
 
         ListView list = findViewById(R.id.list);
-        filter = findViewById(R.id.filter);
-        clear = findViewById(R.id.clear_filter);
+        filter = null;
+        clear = null;
 
         list.setAdapter(adapter);
         list.setOnItemClickListener(this);
         list.setOnItemLongClickListener(this);
-
-        filter.addTextChangedListener(this);
-        filter.setOnEditorActionListener(this);
-        clear.setOnClickListener(this);
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ACTION_PACKAGE_ADDED);
