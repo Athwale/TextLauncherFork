@@ -1,16 +1,21 @@
 plugins {
-    id "com.android.application"
+    alias(libs.plugins.android.application)
 }
 
 android {
-    compileSdkVersion 34
+    namespace 'com.example.modtextlauncher'
+    compileSdk 34
+
     defaultConfig {
-        applicationId "modded.textlauncher"
-        minSdkVersion 14
-        targetSdkVersion 34
-        versionCode 10
-        versionName "1.4.1"
+        applicationId "com.example.modtextlauncher"
+        minSdk 27
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             minifyEnabled true
@@ -21,12 +26,5 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
-    }
-    namespace "modded.textlauncher"
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
     }
 }

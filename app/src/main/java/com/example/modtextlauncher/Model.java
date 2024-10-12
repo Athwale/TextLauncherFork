@@ -1,4 +1,4 @@
-package modded.textlauncher;
+package com.example.modtextlauncher;
 
 final class Model {
 

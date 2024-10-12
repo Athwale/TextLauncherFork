@@ -1,4 +1,4 @@
-package modded.textlauncher;
+package com.example.modtextlauncher;
 
 import android.view.LayoutInflater;
 import android.view.View;

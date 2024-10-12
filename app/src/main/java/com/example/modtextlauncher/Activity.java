@@ -1,4 +1,4 @@
-package modded.textlauncher;
+package com.example.modtextlauncher;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -115,7 +115,7 @@ public final class Activity extends android.app.Activity implements
         ArrayList<Model> models = new ArrayList<>();
         long id = 0;
         for (ResolveInfo resolveInfo : availableActivities) {
-            if ("modded.textlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName))
+            if ("com.example.modtextlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName))
                 continue;
             models.add(new Model(
                     ++id,
