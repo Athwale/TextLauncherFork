@@ -1,4 +1,4 @@
-package ademar.textlauncher;
+package modded.textlauncher;
 
 import android.content.Intent;
 

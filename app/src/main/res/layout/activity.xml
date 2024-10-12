@@ -11,9 +11,8 @@
         android:layout_height="match_parent"
         android:cacheColorHint="@android:color/transparent"
         android:divider="@android:color/white"
-        android:dividerHeight="1dp"
+        android:dividerHeight="1px"
         android:fastScrollEnabled="true"
-        android:listSelector="?android:attr/selectableItemBackground"
+        android:listSelector="@drawable/listview_colors"
         tools:listitem="@layout/model" />
-
 </merge>

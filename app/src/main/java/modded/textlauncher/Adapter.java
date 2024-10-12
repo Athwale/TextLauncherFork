@@ -1,4 +1,4 @@
-package ademar.textlauncher;
+package modded.textlauncher;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,22 +56,6 @@ public final class Adapter extends BaseAdapter {
         this.models.addAll(models);
         enabled = new boolean[models.size()];
         filtered = false;
-        notifyDataSetChanged();
-    }
-
-    void filter(String query) {
-        int size = enabled.length;
-        if (query.isEmpty()) {
-            filtered = false;
-        } else {
-            filtered = true;
-            Model model;
-            query = query.toLowerCase();
-            for (int i = 0; i < size; i++) {
-                model = models.get(i);
-                enabled[i] = model.labelSearch.contains(query);
-            }
-        }
         notifyDataSetChanged();
     }
 

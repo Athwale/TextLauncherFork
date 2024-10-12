@@ -5,7 +5,7 @@ plugins {
 android {
     compileSdkVersion 34
     defaultConfig {
-        applicationId "ademar.textlauncher"
+        applicationId "modded.textlauncher"
         minSdkVersion 14
         targetSdkVersion 34
         versionCode 10
@@ -22,7 +22,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-    namespace "ademar.textlauncher"
+    namespace "modded.textlauncher"
 }
 
 java {

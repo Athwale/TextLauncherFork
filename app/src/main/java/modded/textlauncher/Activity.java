@@ -1,4 +1,4 @@
-package ademar.textlauncher;
+package modded.textlauncher;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,16 +9,9 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -31,20 +24,16 @@ import static android.content.Intent.ACTION_PACKAGE_ADDED;
 import static android.content.Intent.ACTION_PACKAGE_REMOVED;
 import static android.content.Intent.ACTION_PACKAGE_REPLACED;
 import static android.content.Intent.CATEGORY_LAUNCHER;
-import static android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH;
+
 
 public final class Activity extends android.app.Activity implements
         Comparator<Model>,
-        TextWatcher,
         AdapterView.OnItemClickListener,
         AdapterView.OnItemLongClickListener,
-        TextView.OnEditorActionListener,
         View.OnClickListener {
 
     private final Adapter adapter = new Adapter();
 
-    private EditText filter;
-    private ImageView clear;
     private BroadcastReceiver broadcastReceiver;
 
     @Override
@@ -55,8 +44,6 @@ public final class Activity extends android.app.Activity implements
         update();
 
         ListView list = findViewById(R.id.list);
-        filter = null;
-        clear = null;
 
         list.setAdapter(adapter);
         list.setOnItemClickListener(this);
@@ -89,35 +76,18 @@ public final class Activity extends android.app.Activity implements
     }
 
     @Override
+    public void onClick(View view) {
+    }
+
+    @Override
     public int compare(Model lhs, Model rhs) {
         return lhs.label.compareToIgnoreCase(rhs.label);
     }
 
     @Override
-    public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-    }
-
-    @Override
-    public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
-    }
-
-    @Override
-    public void afterTextChanged(Editable editable) {
-        adapter.filter(editable.toString());
-        if (clear != null) {
-            clear.setVisibility(editable.length() > 0 ? View.VISIBLE : View.GONE);
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        clearSearch();
-    }
-
-    @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
-        hideKeyboard();
         try {
+            Toast.makeText(this, adapter.getItem(index).label, Toast.LENGTH_SHORT).show();
             startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
         } catch (Exception e) {
             Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
@@ -126,7 +96,6 @@ public final class Activity extends android.app.Activity implements
 
     @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long id) {
-        hideKeyboard();
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(Uri.fromParts("package", adapter.getItem(index).packageName, null));
@@ -138,30 +107,7 @@ public final class Activity extends android.app.Activity implements
         return true;
     }
 
-    @Override
-    public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-        return actionId == IME_ACTION_SEARCH && hideKeyboard();
-    }
-
-    private boolean hideKeyboard() {
-        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        if (inputMethodManager != null && filter != null) {
-            inputMethodManager.hideSoftInputFromWindow(filter.getWindowToken(), 0);
-            return true;
-        }
-        return false;
-    }
-
-    private void clearSearch() {
-        if (filter != null) {
-            filter.setText("");
-        }
-        hideKeyboard();
-    }
-
     private void update() {
-        clearSearch();
-
         PackageManager packageManager = getPackageManager();
         Intent intent = new Intent(ACTION_MAIN, null);
         intent.addCategory(CATEGORY_LAUNCHER);
@@ -169,7 +115,8 @@ public final class Activity extends android.app.Activity implements
         ArrayList<Model> models = new ArrayList<>();
         long id = 0;
         for (ResolveInfo resolveInfo : availableActivities) {
-            if ("ademar.textlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) continue;
+            if ("modded.textlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName))
+                continue;
             models.add(new Model(
                     ++id,
                     resolveInfo.loadLabel(packageManager).toString(),
@@ -179,5 +126,4 @@ public final class Activity extends android.app.Activity implements
         Collections.sort(models, this);
         adapter.update(models);
     }
-
 }
