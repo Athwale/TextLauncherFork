@@ -1,6 +1,6 @@
 package com.example.modtextlauncher;
 
-final class Model {
+public final class Model {
 
     final long id;
     final String label;

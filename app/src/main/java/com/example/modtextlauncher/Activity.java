@@ -15,7 +15,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -87,8 +86,14 @@ public final class Activity extends android.app.Activity implements
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
         try {
-            Toast.makeText(this, adapter.getItem(index).label, Toast.LENGTH_SHORT).show();
-            startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
+            if (adapter.getItem(index).packageName.equalsIgnoreCase("internalfilebrowseroreo")) {
+                Intent intent = new Intent();
+                intent.setClassName("com.android.documentsui",
+                        "com.android.documentsui.files.FilesActivity");
+                startActivity(intent);
+            } else {
+                startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
+            }
         } catch (Exception e) {
             Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -117,13 +122,14 @@ public final class Activity extends android.app.Activity implements
         for (ResolveInfo resolveInfo : availableActivities) {
             if ("com.example.modtextlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName))
                 continue;
-            models.add(new Model(
-                    ++id,
-                    resolveInfo.loadLabel(packageManager).toString(),
+            models.add(new Model(++id, resolveInfo.loadLabel(packageManager).toString(),
                     resolveInfo.activityInfo.packageName
             ));
         }
-        Collections.sort(models, this);
+        // Add internal Android file browser special button.
+        models.add(new Model(++id, "File Browser", "internalfilebrowseroreo"));
+
+        models.sort(this);
         adapter.update(models);
     }
 }
