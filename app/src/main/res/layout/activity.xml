@@ -7,11 +7,12 @@
 
     <ListView
         android:id="@+id/list"
+        android:background="#FFFFFF"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:cacheColorHint="@android:color/transparent"
-        android:divider="@android:color/white"
-        android:dividerHeight="1px"
+        android:divider="@android:color/black"
+        android:dividerHeight="1dp"
         android:fastScrollEnabled="true"
         android:listSelector="@drawable/listview_colors"
         tools:listitem="@layout/model" />
