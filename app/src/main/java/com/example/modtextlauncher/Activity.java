@@ -122,14 +122,12 @@ public final class Activity extends android.app.Activity implements
         for (ResolveInfo resolveInfo : availableActivities) {
             if ("com.example.modtextlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName))
                 continue;
-            if ("com.android.settings".equalsIgnoreCase(resolveInfo.activityInfo.packageName))
-                continue;
             models.add(new Model(++id, resolveInfo.loadLabel(packageManager).toString(),
                     resolveInfo.activityInfo.packageName
             ));
         }
         // Add internal Android file browser special button.
-        models.add(new Model(++id, "File Browser", "internalfilebrowseroreo"));
+        //models.add(new Model(++id, "File Browser", "internalfilebrowseroreo"));
 
         models.sort(this);
         adapter.update(models);
