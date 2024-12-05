@@ -6,9 +6,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.Surface;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -30,6 +32,18 @@ public final class Activity extends android.app.Activity implements
         AdapterView.OnItemClickListener,
         AdapterView.OnItemLongClickListener,
         View.OnClickListener {
+
+    private boolean checkSystemWritePermission() {
+        boolean retVal = Settings.System.canWrite(this);
+        if (retVal) {
+            return retVal;
+        } else {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            intent.setData(Uri.parse("package:" + this.getPackageName()));
+            startActivity(intent);
+        }
+        return retVal;
+    }
 
     private final Adapter adapter = new Adapter();
 
@@ -86,10 +100,20 @@ public final class Activity extends android.app.Activity implements
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
         try {
-            if (adapter.getItem(index).packageName.equalsIgnoreCase("internalfilebrowseroreo")) {
+            if (adapter.getItem(index).packageName.equalsIgnoreCase("rotationSwitch")) {
+                if (this.checkSystemWritePermission()) {
+                    Settings.System.putInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
+                    int orientation = this.getResources().getConfiguration().orientation;
+                    if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, Surface.ROTATION_90);
+                    } else {
+                        Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, Surface.ROTATION_0);
+                    }
+                }
+            } else if (adapter.getItem(index).packageName.equalsIgnoreCase("wetaoSettings")) {
                 Intent intent = new Intent();
-                intent.setClassName("com.android.documentsui",
-                        "com.android.documentsui.files.FilesActivity");
+                intent.setClassName("com.android.settings",
+                        "com.android.settings.WetaoSettings");
                 startActivity(intent);
             } else {
                 startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
@@ -126,8 +150,12 @@ public final class Activity extends android.app.Activity implements
                     resolveInfo.activityInfo.packageName
             ));
         }
-        // Add internal Android file browser special button.
-        //models.add(new Model(++id, "File Browser", "internalfilebrowseroreo"));
+
+        // Add settings.
+        models.add(new Model(++id, "Settings", "wetaoSettings"));
+
+        // Add screen rotation button.
+        models.add(new Model(++id, "Switch orientation", "rotationSwitch"));
 
         models.sort(this);
         adapter.update(models);

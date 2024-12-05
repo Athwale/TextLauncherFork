@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Text Launcher Mod</string>
     <string name="filter">Filter apps</string>
+    <string name="rotate_screen">Rotate screen</string>
 </resources>
