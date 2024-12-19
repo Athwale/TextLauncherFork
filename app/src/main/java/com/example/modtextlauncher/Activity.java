@@ -1,5 +1,6 @@
 package com.example.modtextlauncher;
 
+import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +11,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.Surface;
 import android.view.View;
 import android.widget.AdapterView;
@@ -97,6 +99,21 @@ public final class Activity extends android.app.Activity implements
         return lhs.label.compareToIgnoreCase(rhs.label);
     }
 
+    public void log(Object message) {
+        Log.d("TT", String.valueOf(message));
+    }
+
+    private boolean getDeviceEncryptionStatus(Context context) {
+        final DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService
+                (Context.DEVICE_POLICY_SERVICE);
+        int state = dpm.getStorageEncryptionStatus();
+        log(state);
+        if (state == DevicePolicyManager.ENCRYPTION_STATUS_INACTIVE) {
+            return false;
+        }
+        return state == DevicePolicyManager.ENCRYPTION_STATUS_ACTIVE;
+    }
+
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
         try {
@@ -115,11 +132,18 @@ public final class Activity extends android.app.Activity implements
                 intent.setClassName("com.android.settings",
                         "com.android.settings.WetaoSettings");
                 startActivity(intent);
+            } else if (adapter.getItem(index).packageName.equalsIgnoreCase("encrypt")) {
+                boolean status = getDeviceEncryptionStatus(this);
+                // todo
+                Intent intent = new Intent();
+                intent.setClassName("com.android.settings",
+                        "com.android.settings.Settings$CryptKeeperSettingsActivity");
+                startActivity(intent);
             } else {
                 startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
             }
         } catch (Exception e) {
-            Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -153,6 +177,9 @@ public final class Activity extends android.app.Activity implements
 
         // Add settings.
         models.add(new Model(++id, "Settings", "wetaoSettings"));
+
+        // Add screen rotation button.
+        models.add(new Model(++id, "Encryption", "encrypt"));
 
         // Add screen rotation button.
         models.add(new Model(++id, "Switch orientation", "rotationSwitch"));
