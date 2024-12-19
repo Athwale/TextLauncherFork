@@ -138,8 +138,12 @@ public final class Activity extends android.app.Activity implements
         ArrayList<Model> models = new ArrayList<>();
         long id = 0;
         for (ResolveInfo resolveInfo : availableActivities) {
-            if ("com.example.modtextlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName))
+            if ("com.example.modtextlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
                 continue;
+            }
+            if ("com.android.inputmethod.latin".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
+                continue;
+            }
             models.add(new Model(++id, resolveInfo.loadLabel(packageManager).toString(),
                     resolveInfo.activityInfo.packageName
             ));
