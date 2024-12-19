@@ -109,12 +109,7 @@ public final class Activity extends android.app.Activity implements
                         Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, Surface.ROTATION_0);
                     }
                 }
-            } else if (adapter.getItem(index).packageName.equalsIgnoreCase("wetaoSettings")) {
-                Intent intent = new Intent();
-                intent.setClassName("com.android.settings",
-                        "com.android.settings.WetaoSettings");
-                startActivity(intent);
-            } else {
+            }  else {
                 startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
             }
         } catch (Exception e) {
@@ -149,9 +144,6 @@ public final class Activity extends android.app.Activity implements
                     resolveInfo.activityInfo.packageName
             ));
         }
-
-        // Add settings.
-        models.add(new Model(++id, "Settings", "wetaoSettings"));
 
         // Add screen rotation button.
         models.add(new Model(++id, "Switch orientation", "rotationSwitch"));
