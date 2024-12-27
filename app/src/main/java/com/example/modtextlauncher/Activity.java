@@ -9,6 +9,7 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.view.Surface;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -34,6 +36,9 @@ public final class Activity extends android.app.Activity implements
         View.OnClickListener {
 
     private final Adapter adapter = new Adapter();
+    private final File config_complete = new File(Environment.getExternalStoragePublicDirectory
+            (Environment.DIRECTORY_DOWNLOADS), ".device_wizard_complete");
+    public static final int REQUEST_1 = 908;
     private BroadcastReceiver broadcastReceiver;
 
     private boolean checkSystemWritePermission() {
@@ -54,6 +59,16 @@ public final class Activity extends android.app.Activity implements
         setContentView(R.layout.activity);
 
         update();
+        if (!this.config_complete.exists()) {
+            try {
+                Intent intent = new Intent();
+                intent.setClassName("com.android.firstsetup",
+                        "com.android.firstsetup.MainActivity");
+                startActivityForResult(intent, REQUEST_1);
+            } catch (Exception e) {
+                Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            }
+        }
 
         ListView list = findViewById(R.id.list);
 
