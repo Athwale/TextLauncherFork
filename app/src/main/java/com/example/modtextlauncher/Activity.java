@@ -6,12 +6,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
-import android.view.Surface;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -40,18 +38,6 @@ public final class Activity extends android.app.Activity implements
             (Environment.DIRECTORY_DOWNLOADS), ".device_wizard_complete");
     public static final int REQUEST_1 = 908;
     private BroadcastReceiver broadcastReceiver;
-
-    private boolean checkSystemWritePermission() {
-        boolean retVal = Settings.System.canWrite(this);
-        if (retVal) {
-            return retVal;
-        } else {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-            intent.setData(Uri.parse("package:" + this.getPackageName()));
-            startActivity(intent);
-        }
-        return retVal;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,19 +100,7 @@ public final class Activity extends android.app.Activity implements
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
         try {
-            if (adapter.getItem(index).packageName.equalsIgnoreCase("rotationSwitch")) {
-                if (this.checkSystemWritePermission()) {
-                    Settings.System.putInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
-                    int orientation = this.getResources().getConfiguration().orientation;
-                    if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                        Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, Surface.ROTATION_90);
-                    } else {
-                        Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, Surface.ROTATION_0);
-                    }
-                }
-            }  else {
-                startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
-            }
+            startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
         } catch (Exception e) {
             Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
@@ -156,16 +130,11 @@ public final class Activity extends android.app.Activity implements
             if ("com.example.modtextlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
                 continue;
             }
-            if ("com.android.inputmethod.latin".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
-                continue;
-            }
+
             models.add(new Model(++id, resolveInfo.loadLabel(packageManager).toString(),
                     resolveInfo.activityInfo.packageName
             ));
         }
-
-        // Add screen rotation button.
-        models.add(new Model(++id, "Switch orientation", "rotationSwitch"));
 
         models.sort(this);
         adapter.update(models);
