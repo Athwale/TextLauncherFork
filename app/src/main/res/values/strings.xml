@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Text Launcher Mod</string>
+    <string name="initial_setup">Initial setup</string>
+    <string name="password">Password</string>
+    <string name="power">Power</string>
+    <string name="encryption">Encryption</string>
+    <string name="apks_copied_to_download">APKs copied to Download</string>
 </resources>

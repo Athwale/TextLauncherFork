@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -47,6 +48,9 @@ public final class Activity extends android.app.Activity implements
         update();
         if (!this.config_complete.exists()) {
             try {
+                // TODO first run a device setup activity, copy files and make the user set a password. Not a new package.
+                // TODO set Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 1);
+                // TODO this might need a new apk with special permissions.
                 Intent intent = new Intent();
                 intent.setClassName("com.android.firstsetup",
                         "com.android.firstsetup.MainActivity");
@@ -120,6 +124,7 @@ public final class Activity extends android.app.Activity implements
     }
 
     private void update() {
+        //Log.d("TLINFO", resolveInfo.activityInfo.packageName);
         PackageManager packageManager = getPackageManager();
         Intent intent = new Intent(ACTION_MAIN, null);
         intent.addCategory(CATEGORY_LAUNCHER);
@@ -128,6 +133,13 @@ public final class Activity extends android.app.Activity implements
         long id = 0;
         for (ResolveInfo resolveInfo : availableActivities) {
             if ("com.example.modtextlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
+                continue;
+            }
+
+            if ("com.android.settings".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
+                models.add(new Model(++id, "Settings",
+                        resolveInfo.activityInfo.packageName
+                ));
                 continue;
             }
 
