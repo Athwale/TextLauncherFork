@@ -48,13 +48,9 @@ public final class Activity extends android.app.Activity implements
         update();
         if (!this.config_complete.exists()) {
             try {
-                // TODO first run a device setup activity, copy files and make the user set a password. Not a new package.
-                // TODO set Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 1);
-                // TODO this might need a new apk with special permissions.
-                Intent intent = new Intent();
-                intent.setClassName("com.android.firstsetup",
-                        "com.android.firstsetup.MainActivity");
-                startActivityForResult(intent, REQUEST_1);
+                Log.d("TLINFO", "Would launch wizard");
+                // Intent intent = new Intent(this, WelcomeActivity.class);
+                // startActivityForResult(intent, REQUEST_1);
             } catch (Exception e) {
                 Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
