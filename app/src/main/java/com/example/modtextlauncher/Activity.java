@@ -4,19 +4,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -35,10 +33,8 @@ public final class Activity extends android.app.Activity implements
         View.OnClickListener {
 
     private final Adapter adapter = new Adapter();
-    private final File config_complete = new File(Environment.getExternalStoragePublicDirectory
-            (Environment.DIRECTORY_DOWNLOADS), ".device_wizard_complete");
-    public static final int REQUEST_1 = 908;
     private BroadcastReceiver broadcastReceiver;
+    public static final String PW_PREF_NAME = "PasswdSetRunOnce";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,14 +42,25 @@ public final class Activity extends android.app.Activity implements
         setContentView(R.layout.activity);
 
         update();
-        if (!this.config_complete.exists()) {
+
+        SharedPreferences prefs = getSharedPreferences(PW_PREF_NAME, MODE_PRIVATE);
+        boolean is_pw_set = prefs.getBoolean("pwset", false);
+
+        if (!is_pw_set) {
             try {
-                Log.d("TLINFO", "Would launch wizard");
-                // Intent intent = new Intent(this, WelcomeActivity.class);
-                // startActivityForResult(intent, REQUEST_1);
+                Intent intent = new Intent();
+                // Start by setting the password once.
+                intent.setClassName("com.android.settings",
+                        "com.android.settings.password.ScreenLockSuggestionActivity");
+                startActivity(intent);
             } catch (Exception e) {
                 Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
+
+            // Save the fact that password was set.
+            SharedPreferences.Editor editor = getSharedPreferences(PW_PREF_NAME, MODE_PRIVATE).edit();
+            editor.putBoolean("pwset", true);
+            editor.apply();
         }
 
         ListView list = findViewById(R.id.list);
