@@ -1,7 +1,9 @@
 package com.example.modtextlauncher;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -10,6 +12,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -18,6 +21,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import static android.content.Intent.ACTION_MAIN;
 import static android.content.Intent.ACTION_PACKAGE_ADDED;
@@ -106,8 +110,22 @@ public final class Activity extends android.app.Activity implements
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
+        String package_name = adapter.getItem(index).packageName;
         try {
-            startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
+            if (Objects.equals(package_name, "SecondMenu")) {
+                AlertDialog alertDialog = new AlertDialog.Builder(Activity.this).create();
+                alertDialog.setTitle("Alert");
+                alertDialog.setMessage("Second menu is empty");
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                alertDialog.show();
+                return;
+            }
+            startActivity(getPackageManager().getLaunchIntentForPackage(package_name));
         } catch (Exception e) {
             Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
@@ -115,13 +133,20 @@ public final class Activity extends android.app.Activity implements
 
     @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long id) {
-        Intent intent = new Intent();
-        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        intent.setData(Uri.fromParts("package", adapter.getItem(index).packageName, null));
+        String package_name = adapter.getItem(index).packageName;
         try {
+            if (Objects.equals(package_name, "SecondMenu")) {
+                Intent intent = new Intent(this, SecondMenu.class);
+                startActivity(intent);
+                return true;
+            }
+
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", package_name, null));
             startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(this, adapter.getItem(index).packageName, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, package_name, Toast.LENGTH_LONG).show();
         }
         return true;
     }
@@ -150,6 +175,8 @@ public final class Activity extends android.app.Activity implements
                     resolveInfo.activityInfo.packageName
             ));
         }
+
+        models.add(new Model(++id, "Second Menu", "SecondMenu"));
 
         models.sort(this);
         adapter.update(models);
