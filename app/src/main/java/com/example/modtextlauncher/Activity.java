@@ -1,9 +1,7 @@
 package com.example.modtextlauncher;
 
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -12,7 +10,6 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -38,7 +35,8 @@ public final class Activity extends android.app.Activity implements
 
     private final Adapter adapter = new Adapter();
     private BroadcastReceiver broadcastReceiver;
-    public static final String PW_PREF_NAME = "PasswdSetRunOnce";
+    private static final String PW_PREF_NAME = "PasswdSetRunOnce";
+    private int counter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +83,6 @@ public final class Activity extends android.app.Activity implements
                 update();
             }
         };
-
         registerReceiver(broadcastReceiver, intentFilter);
     }
 
@@ -123,9 +120,13 @@ public final class Activity extends android.app.Activity implements
         String package_name = adapter.getItem(index).packageName;
         try {
             if (Objects.equals(package_name, "com.android.documentsui")) {
-                Intent intent = new Intent(this, SecondMenu.class);
-                startActivity(intent);
-                return true;
+                this.counter++;
+                if (this.counter >= 2) {
+                    this.counter = 0;
+                    Intent intent = new Intent(this, SecondMenu.class);
+                    startActivity(intent);
+                    return true;
+                }
             }
 
             Intent intent = new Intent();
@@ -162,7 +163,6 @@ public final class Activity extends android.app.Activity implements
                     resolveInfo.activityInfo.packageName
             ));
         }
-
         models.sort(this);
         adapter.update(models);
     }
