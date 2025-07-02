@@ -4,23 +4,22 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.Settings;
-import android.view.Surface;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import static android.content.Intent.ACTION_MAIN;
 import static android.content.Intent.ACTION_PACKAGE_ADDED;
@@ -36,22 +35,10 @@ public final class Activity extends android.app.Activity implements
         View.OnClickListener {
 
     private final Adapter adapter = new Adapter();
-    private final File config_complete = new File(Environment.getExternalStoragePublicDirectory
-            (Environment.DIRECTORY_DOWNLOADS), ".device_wizard_complete");
-    public static final int REQUEST_1 = 908;
     private BroadcastReceiver broadcastReceiver;
-
-    private boolean checkSystemWritePermission() {
-        boolean retVal = Settings.System.canWrite(this);
-        if (retVal) {
-            return retVal;
-        } else {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-            intent.setData(Uri.parse("package:" + this.getPackageName()));
-            startActivity(intent);
-        }
-        return retVal;
-    }
+    private static final String PW_PREF_NAME = "PasswdSetRunOnce";
+    private static final int A_CODE = 29836;
+    private int counter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,15 +46,25 @@ public final class Activity extends android.app.Activity implements
         setContentView(R.layout.activity);
 
         update();
-        if (!this.config_complete.exists()) {
+
+        SharedPreferences prefs = getSharedPreferences(PW_PREF_NAME, MODE_PRIVATE);
+        boolean is_pw_set = prefs.getBoolean("pwset", false);
+
+        if (!is_pw_set) {
             try {
                 Intent intent = new Intent();
-                intent.setClassName("com.android.firstsetup",
-                        "com.android.firstsetup.MainActivity");
-                startActivityForResult(intent, REQUEST_1);
+                // Start by setting the password once.
+                intent.setClassName("com.android.settings",
+                        "com.android.settings.password.ScreenLockSuggestionActivity");
+                startActivity(intent);
             } catch (Exception e) {
                 Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
             }
+
+            // Save the fact that password was set.
+            SharedPreferences.Editor editor = getSharedPreferences(PW_PREF_NAME, MODE_PRIVATE).edit();
+            editor.putBoolean("pwset", true);
+            editor.apply();
         }
 
         ListView list = findViewById(R.id.list);
@@ -88,7 +85,6 @@ public final class Activity extends android.app.Activity implements
                 update();
             }
         };
-
         registerReceiver(broadcastReceiver, intentFilter);
     }
 
@@ -113,39 +109,57 @@ public final class Activity extends android.app.Activity implements
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
+        String package_name = adapter.getItem(index).packageName;
         try {
-            if (adapter.getItem(index).packageName.equalsIgnoreCase("rotationSwitch")) {
-                if (this.checkSystemWritePermission()) {
-                    Settings.System.putInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
-                    int orientation = this.getResources().getConfiguration().orientation;
-                    if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                        Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, Surface.ROTATION_90);
-                    } else {
-                        Settings.System.putInt(getContentResolver(), Settings.System.USER_ROTATION, Surface.ROTATION_0);
-                    }
-                }
-            }  else {
-                startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
-            }
+            startActivity(getPackageManager().getLaunchIntentForPackage(package_name));
         } catch (Exception e) {
             Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == A_CODE) {
+            if(resultCode == Activity.RESULT_OK) {
+                Log.d("PPPP", "OK");
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                Log.d("PPPP", "CANCEL");
+            }
+        }
+    }
+
+    public void pw_dialog() {
+        Intent intent = new Intent(this, PwActivity.class);
+        startActivityForResult(intent, A_CODE);
+    }
+
+    @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long id) {
-        Intent intent = new Intent();
-        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        intent.setData(Uri.fromParts("package", adapter.getItem(index).packageName, null));
+        String package_name = adapter.getItem(index).packageName;
         try {
+            if (Objects.equals(package_name, "com.android.documentsui")) {
+                this.counter++;
+                if (this.counter >= 2) {
+                    this.pw_dialog();
+                    this.counter = 0;
+                    return true;
+                    }
+                }
+
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", package_name, null));
             startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(this, adapter.getItem(index).packageName, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, package_name, Toast.LENGTH_LONG).show();
         }
         return true;
     }
 
     private void update() {
+        //Log.d("TLINFO", resolveInfo.activityInfo.packageName);
         PackageManager packageManager = getPackageManager();
         Intent intent = new Intent(ACTION_MAIN, null);
         intent.addCategory(CATEGORY_LAUNCHER);
@@ -156,17 +170,18 @@ public final class Activity extends android.app.Activity implements
             if ("com.example.modtextlauncher".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
                 continue;
             }
-            if ("com.android.inputmethod.latin".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
+
+            if ("com.android.settings".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
+                models.add(new Model(++id, "Settings",
+                        resolveInfo.activityInfo.packageName
+                ));
                 continue;
             }
+
             models.add(new Model(++id, resolveInfo.loadLabel(packageManager).toString(),
                     resolveInfo.activityInfo.packageName
             ));
         }
-
-        // Add screen rotation button.
-        models.add(new Model(++id, "Switch orientation", "rotationSwitch"));
-
         models.sort(this);
         adapter.update(models);
     }
