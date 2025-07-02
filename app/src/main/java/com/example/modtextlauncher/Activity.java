@@ -112,19 +112,6 @@ public final class Activity extends android.app.Activity implements
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
         String package_name = adapter.getItem(index).packageName;
         try {
-            if (Objects.equals(package_name, "SecondMenu")) {
-                AlertDialog alertDialog = new AlertDialog.Builder(Activity.this).create();
-                alertDialog.setTitle("Alert");
-                alertDialog.setMessage("Second menu is empty");
-                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                alertDialog.show();
-                return;
-            }
             startActivity(getPackageManager().getLaunchIntentForPackage(package_name));
         } catch (Exception e) {
             Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
@@ -135,7 +122,7 @@ public final class Activity extends android.app.Activity implements
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long id) {
         String package_name = adapter.getItem(index).packageName;
         try {
-            if (Objects.equals(package_name, "SecondMenu")) {
+            if (Objects.equals(package_name, "com.android.documentsui")) {
                 Intent intent = new Intent(this, SecondMenu.class);
                 startActivity(intent);
                 return true;
@@ -175,8 +162,6 @@ public final class Activity extends android.app.Activity implements
                     resolveInfo.activityInfo.packageName
             ));
         }
-
-        models.add(new Model(++id, "Second Menu", "SecondMenu"));
 
         models.sort(this);
         adapter.update(models);
