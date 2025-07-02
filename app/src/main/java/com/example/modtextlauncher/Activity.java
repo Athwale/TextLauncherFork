@@ -10,6 +10,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -36,6 +37,7 @@ public final class Activity extends android.app.Activity implements
     private final Adapter adapter = new Adapter();
     private BroadcastReceiver broadcastReceiver;
     private static final String PW_PREF_NAME = "PasswdSetRunOnce";
+    private static final int A_CODE = 29836;
     private int counter = 0;
 
     @Override
@@ -116,18 +118,35 @@ public final class Activity extends android.app.Activity implements
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == A_CODE) {
+            if(resultCode == Activity.RESULT_OK) {
+                Log.d("PPPP", "OK");
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                Log.d("PPPP", "CANCEL");
+            }
+        }
+    }
+
+    public void pw_dialog() {
+        Intent intent = new Intent(this, PwActivity.class);
+        startActivityForResult(intent, A_CODE);
+    }
+
+    @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long id) {
         String package_name = adapter.getItem(index).packageName;
         try {
             if (Objects.equals(package_name, "com.android.documentsui")) {
                 this.counter++;
                 if (this.counter >= 2) {
+                    this.pw_dialog();
                     this.counter = 0;
-                    Intent intent = new Intent(this, SecondMenu.class);
-                    startActivity(intent);
                     return true;
+                    }
                 }
-            }
 
             Intent intent = new Intent();
             intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
