@@ -1,4 +1,5 @@
 *.iml
+*.ptx
 .gradle
 /local.properties
 .idea/

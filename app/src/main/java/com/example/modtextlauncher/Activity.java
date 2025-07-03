@@ -108,18 +108,6 @@ public final class Activity extends android.app.Activity implements
     }
 
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
-        // In the case it is not the secret, reset the counter.
-        this.counter = 0;
-        String package_name = adapter.getItem(index).packageName;
-        try {
-            startActivity(getPackageManager().getLaunchIntentForPackage(package_name));
-        } catch (Exception e) {
-            Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == A_CODE) {
@@ -138,6 +126,17 @@ public final class Activity extends android.app.Activity implements
     }
 
     @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
+        String package_name = adapter.getItem(index).packageName;
+        this.counter = 0;
+        try {
+            startActivity(getPackageManager().getLaunchIntentForPackage(package_name));
+        } catch (Exception e) {
+            Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int index, long id) {
         String package_name = adapter.getItem(index).packageName;
         try {
@@ -148,10 +147,10 @@ public final class Activity extends android.app.Activity implements
                     this.counter = 0;
                     return true;
                     }
-                }
+                } else {
+                this.counter = 0;
+            }
 
-            // In the case it is not the secret, reset the counter.
-            this.counter = 0;
             Intent intent = new Intent();
             intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.fromParts("package", package_name, null));
