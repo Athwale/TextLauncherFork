@@ -109,6 +109,8 @@ public final class Activity extends android.app.Activity implements
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
+        // In the case it is not the secret, reset the counter.
+        this.counter = 0;
         String package_name = adapter.getItem(index).packageName;
         try {
             startActivity(getPackageManager().getLaunchIntentForPackage(package_name));
@@ -148,6 +150,8 @@ public final class Activity extends android.app.Activity implements
                     }
                 }
 
+            // In the case it is not the secret, reset the counter.
+            this.counter = 0;
             Intent intent = new Intent();
             intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.fromParts("package", package_name, null));

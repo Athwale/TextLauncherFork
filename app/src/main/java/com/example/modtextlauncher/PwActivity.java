@@ -14,6 +14,9 @@ public class PwActivity extends android.app.Activity implements CompoundButton.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.pw_activity);
 
+        // todo kill on sleep.
+        // todo kill on home button
+
         ToggleButton tg1 = findViewById(R.id.toggleButton1);
         tg1.setOnCheckedChangeListener(this);
         ToggleButton tg2 = findViewById(R.id.toggleButton2);
