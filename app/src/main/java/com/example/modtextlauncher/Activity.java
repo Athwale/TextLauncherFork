@@ -12,13 +12,20 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.SyncFailedException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static android.content.Intent.ACTION_MAIN;
@@ -38,12 +45,29 @@ public final class Activity extends android.app.Activity implements
     private BroadcastReceiver broadcastReceiver;
     private static final String PW_PREF_NAME = "PasswdSetRunOnce";
     private static final int A_CODE = 29836;
+    private static final int B_CODE = 65876;
     private int counter = 0;
+    private ArrayList<String> ignore_list=new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity);
+
+        BufferedReader reader;
+        try {
+            final InputStream file = getAssets().open("ignored.ptx");
+            reader = new BufferedReader(new InputStreamReader(file));
+            String line = reader.readLine();
+            while (line != null) {
+                this.ignore_list.add(line);
+                line = reader.readLine();
+            }
+            file.close();
+        } catch(Exception e) {
+            Toast.makeText(this, "Reading ignore list failed",
+                    Toast.LENGTH_LONG).show();
+        }
 
         update();
 
@@ -103,36 +127,48 @@ public final class Activity extends android.app.Activity implements
     }
 
     @Override
-    public int compare(Model lhs, Model rhs) {
-        return lhs.label.compareToIgnoreCase(rhs.label);
+    protected void onResume() {
+        super.onResume();
+        finishActivity(A_CODE);
+        // todo kill all of that for second menu too. start second menu for result from here and send back app id to start from here too
     }
 
     @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
-        String package_name = adapter.getItem(index).packageName;
-        try {
-            startActivity(getPackageManager().getLaunchIntentForPackage(package_name));
-        } catch (Exception e) {
-            Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-        }
+    public int compare(Model lhs, Model rhs) {
+        return lhs.label.compareToIgnoreCase(rhs.label);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == A_CODE) {
-            if(resultCode == Activity.RESULT_OK) {
-                Log.d("PPPP", "OK");
+            finishActivity(A_CODE);
+            if (resultCode == Activity.RESULT_OK) {
+                Intent intent = new Intent(this, SecondMenu.class);
+                startActivityForResult(intent, B_CODE);
+            } else {
+                System.out.println("Result cancel");
             }
-            if (resultCode == Activity.RESULT_CANCELED) {
-                Log.d("PPPP", "CANCEL");
+        }
+        if (requestCode == B_CODE) {
+            finishActivity(B_CODE);
+            if (resultCode == Activity.RESULT_OK) {
+                System.out.println(data.getStringExtra("name"));
+                finishActivity(A_CODE);
+                finishActivity(B_CODE);
             }
         }
     }
 
-    public void pw_dialog() {
-        Intent intent = new Intent(this, PwActivity.class);
-        startActivityForResult(intent, A_CODE);
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
+        String package_name = adapter.getItem(index).packageName;
+        this.counter = 0;
+        try {
+            startActivity(getPackageManager().getLaunchIntentForPackage(package_name));
+        } catch (Exception e) {
+            Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -142,11 +178,14 @@ public final class Activity extends android.app.Activity implements
             if (Objects.equals(package_name, "com.android.documentsui")) {
                 this.counter++;
                 if (this.counter >= 2) {
-                    this.pw_dialog();
+                    Intent intent = new Intent(this, PwActivity.class);
+                    startActivityForResult(intent, A_CODE);
                     this.counter = 0;
                     return true;
                     }
-                }
+                } else {
+                this.counter = 0;
+            }
 
             Intent intent = new Intent();
             intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -159,7 +198,6 @@ public final class Activity extends android.app.Activity implements
     }
 
     private void update() {
-        //Log.d("TLINFO", resolveInfo.activityInfo.packageName);
         PackageManager packageManager = getPackageManager();
         Intent intent = new Intent(ACTION_MAIN, null);
         intent.addCategory(CATEGORY_LAUNCHER);
@@ -171,12 +209,19 @@ public final class Activity extends android.app.Activity implements
                 continue;
             }
 
+            Log.d("PPP", String.valueOf(this.ignore_list));
+            if (this.ignore_list.contains(resolveInfo.activityInfo.packageName)) {
+                continue;
+            }
+
             if ("com.android.settings".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
                 models.add(new Model(++id, "Settings",
                         resolveInfo.activityInfo.packageName
                 ));
                 continue;
             }
+
+            // TODO do not let activities to be started without passing them a code. Test it.
 
             models.add(new Model(++id, resolveInfo.loadLabel(packageManager).toString(),
                     resolveInfo.activityInfo.packageName
