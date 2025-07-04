@@ -17,9 +17,15 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.SyncFailedException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static android.content.Intent.ACTION_MAIN;
@@ -41,11 +47,27 @@ public final class Activity extends android.app.Activity implements
     private static final int A_CODE = 29836;
     private static final int B_CODE = 65876;
     private int counter = 0;
+    private ArrayList<String> ignore_list=new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity);
+
+        BufferedReader reader;
+        try {
+            final InputStream file = getAssets().open("ignored.ptx");
+            reader = new BufferedReader(new InputStreamReader(file));
+            String line = reader.readLine();
+            while (line != null) {
+                this.ignore_list.add(line);
+                line = reader.readLine();
+            }
+            file.close();
+        } catch(Exception e) {
+            Toast.makeText(this, "Reading ignore list failed",
+                    Toast.LENGTH_LONG).show();
+        }
 
         update();
 
@@ -187,12 +209,19 @@ public final class Activity extends android.app.Activity implements
                 continue;
             }
 
+            Log.d("PPP", String.valueOf(this.ignore_list));
+            if (this.ignore_list.contains(resolveInfo.activityInfo.packageName)) {
+                continue;
+            }
+
             if ("com.android.settings".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
                 models.add(new Model(++id, "Settings",
                         resolveInfo.activityInfo.packageName
                 ));
                 continue;
             }
+
+            // TODO do not let activities to be started without passing them a code. Test it.
 
             models.add(new Model(++id, resolveInfo.loadLabel(packageManager).toString(),
                     resolveInfo.activityInfo.packageName
