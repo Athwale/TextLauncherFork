@@ -38,6 +38,7 @@ public final class Activity extends android.app.Activity implements
     private BroadcastReceiver broadcastReceiver;
     private static final String PW_PREF_NAME = "PasswdSetRunOnce";
     private static final int A_CODE = 29836;
+    private static final int B_CODE = 29836;
     private int counter = 0;
 
     @Override
@@ -103,6 +104,14 @@ public final class Activity extends android.app.Activity implements
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        finishActivity(A_CODE);
+        finishActivity(B_CODE);
+        // todo kill all of that for second menu too. start second menu for result from here and send back app id to start from here too
+    }
+
+    @Override
     public int compare(Model lhs, Model rhs) {
         return lhs.label.compareToIgnoreCase(rhs.label);
     }
@@ -112,10 +121,10 @@ public final class Activity extends android.app.Activity implements
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == A_CODE) {
             if(resultCode == Activity.RESULT_OK) {
-                Log.d("PPPP", "OK");
-            }
-            if (resultCode == Activity.RESULT_CANCELED) {
-                Log.d("PPPP", "CANCEL");
+                Intent intent = new Intent(this, SecondMenu.class);
+                startActivityForResult(intent, B_CODE);
+            } else {
+                System.out.println("a");
             }
         }
     }
@@ -162,7 +171,6 @@ public final class Activity extends android.app.Activity implements
     }
 
     private void update() {
-        //Log.d("TLINFO", resolveInfo.activityInfo.packageName);
         PackageManager packageManager = getPackageManager();
         Intent intent = new Intent(ACTION_MAIN, null);
         intent.addCategory(CATEGORY_LAUNCHER);
