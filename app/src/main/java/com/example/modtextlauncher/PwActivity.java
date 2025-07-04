@@ -66,11 +66,8 @@ public class PwActivity extends android.app.Activity implements CompoundButton.O
     public void onWindowFocusChanged(boolean hasFocus) {
         // Hide in multitasking view.
         super.onWindowFocusChanged(hasFocus);
-        if (!hasFocus) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
-        } else {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
-        }
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE);
     }
 
     @Override

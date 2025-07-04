@@ -20,8 +20,18 @@
         <activity
             android:name=".PwActivity"
             android:exported="false"
+            android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:stateNotNeeded="true">
+        </activity>
+
+        <activity
+            android:name=".SecondMenu"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:stateNotNeeded="true"
+            android:windowSoftInputMode="stateHidden">
         </activity>
 
         <activity
@@ -35,14 +45,6 @@
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".SecondMenu"
-            android:exported="true"
-            android:launchMode="singleTask"
-            android:stateNotNeeded="true"
-            android:windowSoftInputMode="stateHidden">
         </activity>
 
         <activity

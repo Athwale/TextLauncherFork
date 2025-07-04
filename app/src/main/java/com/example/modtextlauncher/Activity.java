@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -38,7 +39,7 @@ public final class Activity extends android.app.Activity implements
     private BroadcastReceiver broadcastReceiver;
     private static final String PW_PREF_NAME = "PasswdSetRunOnce";
     private static final int A_CODE = 29836;
-    private static final int B_CODE = 29836;
+    private static final int B_CODE = 65876;
     private int counter = 0;
 
     @Override
@@ -107,7 +108,6 @@ public final class Activity extends android.app.Activity implements
     protected void onResume() {
         super.onResume();
         finishActivity(A_CODE);
-        finishActivity(B_CODE);
         // todo kill all of that for second menu too. start second menu for result from here and send back app id to start from here too
     }
 
@@ -120,18 +120,22 @@ public final class Activity extends android.app.Activity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == A_CODE) {
-            if(resultCode == Activity.RESULT_OK) {
+            finishActivity(A_CODE);
+            if (resultCode == Activity.RESULT_OK) {
                 Intent intent = new Intent(this, SecondMenu.class);
                 startActivityForResult(intent, B_CODE);
             } else {
-                System.out.println("a");
+                System.out.println("Result cancel");
             }
         }
-    }
-
-    public void pw_dialog() {
-        Intent intent = new Intent(this, PwActivity.class);
-        startActivityForResult(intent, A_CODE);
+        if (requestCode == B_CODE) {
+            finishActivity(B_CODE);
+            if (resultCode == Activity.RESULT_OK) {
+                System.out.println(data.getStringExtra("name"));
+                finishActivity(A_CODE);
+                finishActivity(B_CODE);
+            }
+        }
     }
 
     @Override
@@ -152,7 +156,8 @@ public final class Activity extends android.app.Activity implements
             if (Objects.equals(package_name, "com.android.documentsui")) {
                 this.counter++;
                 if (this.counter >= 2) {
-                    this.pw_dialog();
+                    Intent intent = new Intent(this, PwActivity.class);
+                    startActivityForResult(intent, A_CODE);
                     this.counter = 0;
                     return true;
                     }

@@ -1,7 +1,9 @@
 package com.example.modtextlauncher;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -15,8 +17,6 @@ public final class SecondMenu extends android.app.Activity implements
         AdapterView.OnItemClickListener,
         AdapterView.OnItemLongClickListener,
         View.OnClickListener {
-
-    // TODO require password dialog.
 
     private final Adapter adapter = new Adapter();
 
@@ -47,6 +47,26 @@ public final class SecondMenu extends android.app.Activity implements
     public void onClick(View view) {
     }
 
+    private void end() {
+        Intent returnIntent = new Intent();
+        setResult(Activity.RESULT_CANCELED, returnIntent);
+        finish();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        this.end();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        // Hide in multitasking view.
+        super.onWindowFocusChanged(hasFocus);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE);
+    }
+
     @Override
     public int compare(Model lhs, Model rhs) {
         return lhs.label.compareToIgnoreCase(rhs.label);
@@ -54,11 +74,10 @@ public final class SecondMenu extends android.app.Activity implements
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
-        try {
-            startActivity(getPackageManager().getLaunchIntentForPackage(adapter.getItem(index).packageName));
-        } catch (Exception e) {
-            Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-        }
+        Intent returnIntent = new Intent();
+        returnIntent.putExtra("name", adapter.getItem(index).packageName);
+        setResult(Activity.RESULT_OK, returnIntent);
+        finish();
     }
 
     @Override
