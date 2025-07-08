@@ -10,9 +10,7 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -20,12 +18,9 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.SyncFailedException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import static android.content.Intent.ACTION_MAIN;
@@ -47,13 +42,15 @@ public final class Activity extends android.app.Activity implements
     private static final int A_CODE = 29836;
     private static final int B_CODE = 65876;
     private int counter = 0;
-    private ArrayList<String> ignore_list=new ArrayList<>();
+    private final ArrayList<String> ignore_list = new ArrayList<>();
+    private String start_code = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity);
 
+        // Read and store ignore list.
         BufferedReader reader;
         try {
             final InputStream file = getAssets().open("ignored.ptx");
@@ -64,9 +61,18 @@ public final class Activity extends android.app.Activity implements
                 line = reader.readLine();
             }
             file.close();
-        } catch(Exception e) {
-            Toast.makeText(this, "Reading ignore list failed",
-                    Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            finish();
+        }
+
+        // Read activity start code.
+        try {
+            final InputStream file = getAssets().open("start_code.ptx");
+            reader = new BufferedReader(new InputStreamReader(file));
+            this.start_code = reader.readLine();
+            file.close();
+        } catch (Exception e) {
+            finish();
         }
 
         update();
@@ -130,7 +136,6 @@ public final class Activity extends android.app.Activity implements
     protected void onResume() {
         super.onResume();
         finishActivity(A_CODE);
-        // todo kill all of that for second menu too. start second menu for result from here and send back app id to start from here too
     }
 
     @Override
@@ -145,6 +150,10 @@ public final class Activity extends android.app.Activity implements
             finishActivity(A_CODE);
             if (resultCode == Activity.RESULT_OK) {
                 Intent intent = new Intent(this, SecondMenu.class);
+                if (this.start_code == null) {
+                    return;
+                }
+                intent.putExtra("start_code", this.start_code);
                 startActivityForResult(intent, B_CODE);
             } else {
                 System.out.println("Result cancel");
@@ -153,7 +162,13 @@ public final class Activity extends android.app.Activity implements
         if (requestCode == B_CODE) {
             finishActivity(B_CODE);
             if (resultCode == Activity.RESULT_OK) {
-                System.out.println(data.getStringExtra("name"));
+                if (data.getStringExtra("name") != null) {
+                    try {
+                        startActivity(getPackageManager().getLaunchIntentForPackage(Objects.requireNonNull(data.getStringExtra("name"))));
+                    } catch (Exception e) {
+                        Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                    }
+                }
                 finishActivity(A_CODE);
                 finishActivity(B_CODE);
             }
@@ -179,11 +194,15 @@ public final class Activity extends android.app.Activity implements
                 this.counter++;
                 if (this.counter >= 2) {
                     Intent intent = new Intent(this, PwActivity.class);
+                    if (this.start_code == null) {
+                        return false;
+                    }
+                    intent.putExtra("start_code", this.start_code);
                     startActivityForResult(intent, A_CODE);
                     this.counter = 0;
                     return true;
-                    }
-                } else {
+                }
+            } else {
                 this.counter = 0;
             }
 
@@ -209,7 +228,6 @@ public final class Activity extends android.app.Activity implements
                 continue;
             }
 
-            Log.d("PPP", String.valueOf(this.ignore_list));
             if (this.ignore_list.contains(resolveInfo.activityInfo.packageName)) {
                 continue;
             }
@@ -220,9 +238,6 @@ public final class Activity extends android.app.Activity implements
                 ));
                 continue;
             }
-
-            // TODO do not let activities to be started without passing them a code. Test it.
-
             models.add(new Model(++id, resolveInfo.loadLabel(packageManager).toString(),
                     resolveInfo.activityInfo.packageName
             ));

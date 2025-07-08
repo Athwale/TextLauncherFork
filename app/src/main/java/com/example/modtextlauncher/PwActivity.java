@@ -14,6 +14,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 
 public class PwActivity extends android.app.Activity implements CompoundButton.OnCheckedChangeListener {
@@ -28,10 +29,29 @@ public class PwActivity extends android.app.Activity implements CompoundButton.O
     private ToggleButton tg8 = null;
     private ToggleButton tg9 = null;
     private String result = "";
+    private String start_code = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Read activity start code.
+        BufferedReader reader;
+        try {
+            final InputStream file = getAssets().open("start_code.ptx");
+            reader = new BufferedReader(new InputStreamReader(file));
+            this.start_code = reader.readLine();
+            file.close();
+        } catch (Exception e) {
+            finish();
+        }
+
+        String code = getIntent().getStringExtra("start_code");
+        if (!Objects.equals(code, this.start_code)) {
+            finish();
+        }
+
         setContentView(R.layout.pw_activity);
 
         this.tg1 = findViewById(R.id.toggleButton1);
