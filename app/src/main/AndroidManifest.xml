@@ -27,7 +27,7 @@
 
         <activity
             android:name=".SecondMenu"
-            android:exported="true"
+            android:exported="false"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:stateNotNeeded="true"
