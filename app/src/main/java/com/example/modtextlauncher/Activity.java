@@ -45,6 +45,8 @@ public final class Activity extends android.app.Activity implements
     private final ArrayList<String> ignore_list = new ArrayList<>();
     private String start_code = null;
 
+    // TODO device admin???
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -155,8 +157,6 @@ public final class Activity extends android.app.Activity implements
                 }
                 intent.putExtra("start_code", this.start_code);
                 startActivityForResult(intent, B_CODE);
-            } else {
-                System.out.println("Result cancel");
             }
         }
         if (requestCode == B_CODE) {
@@ -233,11 +233,16 @@ public final class Activity extends android.app.Activity implements
             }
 
             if ("com.android.settings".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
-                models.add(new Model(++id, "Settings",
+                continue;
+            }
+
+            if ("com.foobnix.pro.pdf.reader".equalsIgnoreCase(resolveInfo.activityInfo.packageName)) {
+                models.add(new Model(++id, "Reader",
                         resolveInfo.activityInfo.packageName
                 ));
                 continue;
             }
+
             models.add(new Model(++id, resolveInfo.loadLabel(packageManager).toString(),
                     resolveInfo.activityInfo.packageName
             ));

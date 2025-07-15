@@ -52,8 +52,6 @@ public final class SecondMenu extends android.app.Activity implements
             finish();
         }
 
-        // todo show empty in some way when there is nothing to show.
-        // TODO in setup also set up sleep delay and shutdown delay?
         setContentView(R.layout.activity);
 
         try {
@@ -119,6 +117,10 @@ public final class SecondMenu extends android.app.Activity implements
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int index, long id) {
+        if (Objects.equals(adapter.getItem(index).packageName, "Empty")) {
+            Toast.makeText(this, "List is empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
         Intent returnIntent = new Intent();
         returnIntent.putExtra("name", adapter.getItem(index).packageName);
         setResult(Activity.RESULT_OK, returnIntent);
@@ -146,6 +148,9 @@ public final class SecondMenu extends android.app.Activity implements
             }
         }
         models.sort(this);
+        if (models.isEmpty()) {
+            models.add(new Model(++id, "Empty", "Empty"));
+        }
         adapter.update(models);
     }
 }
